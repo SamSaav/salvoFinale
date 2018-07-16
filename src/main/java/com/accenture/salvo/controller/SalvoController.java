@@ -50,6 +50,8 @@ public class SalvoController {
         GamePlayer gamePlayer = gamePlayerRepository.findOne(gamePlayerId);
         if(isAuthenticated() != gamePlayer.getPlayer().getUserName()){
             return new ResponseEntity<>(getMapVariables(Consts.ERROR, Consts.UNAUTHORIZED), HttpStatus.UNAUTHORIZED);
+        }else if (isGamePlaying(gamePlayer)){
+            return getNewScores(gamePlayer);
         }else{
             return isAlreadyPlaying(gamePlayer);
         }
@@ -188,25 +190,29 @@ public class SalvoController {
 
     private Object isAlreadyPlaying(GamePlayer gamePlayer){
         if (gamePlayer.getGame().getPlayer().size() == 2){
-            if (gamePlayer.getSalvos().size() != gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
-                if (gamePlayer.getSalvos().size() > gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
-                    gamePlayer.setGameState(GameState.WAIT);
-                }else if (gamePlayer.getSalvos().size() < gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
-                    gamePlayer.setGameState(GameState.PLAY);
-                }
-            }else if (gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getShips().size() == 0){
-                gamePlayer.setGameState(GameState.WAITINGFOROPP);
-            }else if (gamePlayer.getSalvos().size() == gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
-                getNewScores(gamePlayer);
+            if (gamePlayer.getSalvos().size() > gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
+                gamePlayer.setGameState(GameState.WAIT);
+            }else if (gamePlayer.getSalvos().size() < gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
+                gamePlayer.setGameState(GameState.PLAY);
             }
-        }else{
-            if (gamePlayer.getShips().size() == 0){
-                gamePlayer.setGameState(GameState.PLACESHIPS);
-            }else if (gamePlayer.getShips().size() != 0){
-                gamePlayer.setGameState(GameState.WAITINGFOROPP);
-            }
+        }else if (gamePlayer.getShips().size() != 0){
+            gamePlayer.setGameState(GameState.WAITINGFOROPP);
         }
         return gamePlayer.getGamePlayerDTO();
+    }
+
+    private Boolean isGamePlaying(GamePlayer gamePlayer){
+        if (gamePlayer.getGame().getPlayer().size() != 2){
+            return false;
+        }else if (gamePlayer.getShips().size() == 0){
+            return false;
+        }else if (gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getShips().size() == 0){
+            return false;
+        }else if (gamePlayer.getSalvos().size() != gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
+            return false;
+        }else{
+            return gamePlayer.getSalvos().size() == gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size();
+        }
     }
 
     private Object getNewScores(GamePlayer gamePlayer){

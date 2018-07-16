@@ -272,6 +272,9 @@ public class Game {
             if ((totalHitsIDo == totalHitsIGet) && (totalHitsIDo == opShipsLocs.size()) && (totalHitsIGet == miShipsLocs.size())){
                 gameState = GameState.TIE;
                 player.addScore(new Score(getSelf(player).getGame(), player, 0.5));
+            } else if ((totalHitsIDo == opShipsLocs.size()) && (totalHitsIGet == miShipsLocs.size())){
+                gameState = GameState.TIE;
+                player.addScore(new Score(getSelf(player).getGame(), player, 0.5));
             } else if (totalHitsIDo == opShipsLocs.size()){
                 gameState = GameState.WON;
                 player.addScore(new Score(getSelf(player).getGame(), player, 1.0));
