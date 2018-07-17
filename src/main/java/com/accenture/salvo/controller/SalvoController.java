@@ -71,7 +71,7 @@ public class SalvoController {
         }
 
         playerRepository.save(new Player(userName, password));
-        return new ResponseEntity<>(getMapVariables(Consts.CREATE, Consts.SUCCESS), HttpStatus.CREATED);
+        return new ResponseEntity<>(getMapVariables(Consts.CREATE, Consts.SUCCESS_PLAYER), HttpStatus.CREATED);
     }
 
     //LEADER BOARD
@@ -147,7 +147,7 @@ public class SalvoController {
             gamePlayer.addShips(ships);
             gamePlayer.setGameState(GameState.WAITINGFOROPP);
             gamePlayerRepository.save(gamePlayer);
-            return new ResponseEntity<>(getMapVariables(Consts.CREATE, Consts.SUCCESS), HttpStatus.CREATED);
+            return new ResponseEntity<>(getMapVariables(Consts.CREATE, Consts.SUCCESS_SHIPS), HttpStatus.CREATED);
         }
     }
 
@@ -182,7 +182,7 @@ public class SalvoController {
             gamePlayer.addSalvo(salvo);
             gamePlayer.setGameState(GameState.WAIT);
             gamePlayerRepository.save(gamePlayer);
-            return new ResponseEntity<>(getMapVariables(Consts.CREATE, Consts.SUCCESS), HttpStatus.CREATED);
+            return new ResponseEntity<>(getMapVariables(Consts.CREATE, Consts.SUCCESS_SALVOES), HttpStatus.CREATED);
         }
     }
 
@@ -195,7 +195,7 @@ public class SalvoController {
             }else if (gamePlayer.getSalvos().size() < gamePlayer.getGame().getOpponent(gamePlayer.getPlayer()).getSalvos().size()){
                 gamePlayer.setGameState(GameState.PLAY);
             }
-        }else if (gamePlayer.getShips().size() != 0){
+        } else if (gamePlayer.getShips().size() != 0){
             gamePlayer.setGameState(GameState.WAITINGFOROPP);
         }
         return gamePlayer.getGamePlayerDTO();
@@ -217,7 +217,13 @@ public class SalvoController {
 
     private Object getNewScores(GamePlayer gamePlayer){
         gamePlayer.setGameState(gamePlayer.getGame().getShipsSunk(gamePlayer.getPlayer()));
+        GameState gameState = gamePlayer.getGameState();
+        Long score = gamePlayer.getGame().getScores().stream().filter(s -> s.getScore() == null).count();
         if (gamePlayer.getGame().getScores().size() == 2){
+            if ((gameState == GameState.TIE || gameState == GameState.LOST || gameState == GameState.WON) && score != 0){
+                gamePlayerRepository.save(gamePlayer);
+                return gamePlayer.getGamePlayerDTO();
+            }
             return gamePlayer.getGamePlayerDTO();
         }else{
             gamePlayerRepository.save(gamePlayer);
